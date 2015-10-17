@@ -20,7 +20,7 @@ def backward_check_output(*popenargs, **kwargs):
 def pikaversioncheck():
     from distutils.version import StrictVersion
     import pika
-    REQ_PIKA_VERSION="0.9.14"
+    REQ_PIKA_VERSION="0.9.13"
     if StrictVersion(pika.__version__) < StrictVersion(REQ_PIKA_VERSION):
         print("at least pika version %s"%(REQ_PIKA_VERSION))
         sys.exit(2)
