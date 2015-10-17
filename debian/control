@@ -1,0 +1,18 @@
+Source: taz-amqp-publisher
+Section: python
+Priority: optional
+Maintainer: Name, <asklepios@riseup.net>
+Build-Depends: debhelper (>= 7),
+               python (>= 2.6)
+Standards-Version: 3.9.4
+X-Python-Version: >= 2.6
+
+
+Package: taz-amqp-publisher
+Architecture: all
+Section: python
+Depends: python-pika (>= 0.9.13)
+Description: a message publisher for the AMQP protocol based on 
+ python pika. It provides basic message publishing and supports
+ authentification with client certificates.
+ 

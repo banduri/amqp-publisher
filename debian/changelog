@@ -1,0 +1,5 @@
+amqp-publisher (0.0.1) unstable; urgency=low
+
+  * Initial release. 
+
+ -- Alexander Kasper <asklepios@riseup.net>  Sat, 17 Oct 2015 23:39:53 +0200
