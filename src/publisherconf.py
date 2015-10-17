@@ -88,7 +88,7 @@ parser.add_argument('-M', '--mimetype',
 
 parser.add_argument('-E', '--mimeencoding', 
                     type=str, 
-                    help = "the mimeencoding of the file to be send is based on the result of the unix-tool `file`. If no match is found, or `file` is not available, 'binary' is used. With this parameter the mimeencoding can be forced to be a specific value."
+                    help = "the mimeencoding of the file to be send is based on the result of the unix-tool `file`. If no match is found, or `file` is not available, 'binary' is used. With this parameter the mimeencoding can be forced to be a specific value.",
                     default = None)
 
 parser.add_argument('-f', '--additional-field', 
@@ -96,11 +96,6 @@ parser.add_argument('-f', '--additional-field',
                     help = 'add additional key=value to header of msg. Can be called multible times',
                     default = [],
                     action="append")
-
-parser.add_argument('-i', '--priority', 
-                    type=str, 
-                    help = 'set the priority in the amqpheader',
-                    default = None)
 
 parser.add_argument('-i', '--priority', 
                     type=int, 
