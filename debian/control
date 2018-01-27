@@ -1,18 +1,18 @@
-Source: taz-amqp-publisher
+Source: amqp-rpc-publisher3
 Section: python
 Priority: optional
-Maintainer: Name, <asklepios@riseup.net>
-Build-Depends: debhelper (>= 7),
-               python (>= 2.6)
-Standards-Version: 3.9.4
-X-Python-Version: >= 2.6
+Maintainer: None
+Build-Depends: debhelper (>= 7), python3 (>= 3.4), python-support
+Standards-Version: 3.9.6
+X-Python-Version: >= 3.4
 
-
-Package: taz-amqp-publisher
+Package: amqp-rpc-publisher3
 Architecture: all
 Section: python
-Depends: python-pika (>= 0.9.13)
-Description: a message publisher for the AMQP protocol based on 
- python pika. It provides basic message publishing and supports
- authentification with client certificates.
+Depends: python3-pika (>= 0.10), ${misc:Depends}, ${python:Depends}
+Description: generic amqp-publisher with support for rpc.
+ This package contains an amqp-tool to publish messages to an AMQP-Node.
+ It can be used where a small publisher is more desireable then a
+ larger application stack.
+ 
  

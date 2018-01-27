@@ -1,0 +1,195 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH AMQP 1 "Feb 2018" Linux "Publisher User Manuals"
+.SH NAME
+amqp-publisher \- sending messages and rpc via amqp 
+.SH SYNOPSIS
+.B amqp-publisher [options]
+.I file
+.SH DESCRIPTION
+.B amqp-publisher
+provides a commandline interface to the
+.B python-pika
+library. The encoding of the inputfile is transparency handled by reading as binary.
+The amqp-RPC results can be stored in a file, print to STDOUT or an
+.BR amqp-rpc-callback (1)
+can be called.
+.SH OPTIONS
+.RE
+.BR "Connection Arguments:"
+.RS
+.IP "-o, --host"
+hostname or ip of the amqp-node (default: amqp.example.net)
+.IP "-p, --port"
+port to connect to (default: 5671)
+.IP "-U, --username"
+Username for authentication (default: guest)
+.IP "-P, --password"
+Password for authentication (default: guest)
+.IP "--retry <count>"
+Maximum number of retry attempts to connect to the server (default: 10)
+.IP "--retrydelay <int>"
+Time to wait in seconds, before the next connection retry (default: 1)
+.IP "--sockettimeout <seconds>"
+TCP Socket timeout in seconds (default: 0.25)
+
+.RE
+.BR "TLS Arguments:"
+.RS
+.IP "--tls"
+Boolean flage to use certificates instead of username:password to connect to
+the amqp-server
+.IP "-c certfile"
+When provided the username and password arguments are ignored and 
+.I EXTERNAL
+is used as authentification schem. The expected input format is
+.I pem
+(default: /etc/amqp/amqp.crt)
+.IP "-k keyfile"
+The corresponding private key of the certificate
+(default: /etc/amqp/amqp.key)
+.IP "-a cacert"
+The CA to use for verifying the amqp-node certificate.
+(default: /etc/amqp/cacert.crt)
+
+
+.RE
+.BR "RPC Arguments:"
+.RS
+.IP "--rpc"
+Es wird von einem zweitem Dienst eine Antwort erwartet. Dieser zweite
+dienst antwortet dann direkt an eine tmp exlusive Queue. Die Nachricht
+die als Antwort verstanden wird, in eine tmp-datei geschrieben, und der
+Pfad nach stdout ausgegeben
+.IP "--rpc-timeout <int>"
+How many seconds to wait for a reply. If a timeout occure it will be
+communicated as 
+.B exit 1
+.IP "--rpc-targetfile <path>"
+Write the the result to a targetfile.
+.B Warning:
+you may run into trouble when two publisher use the same targetfile at the same
+time. See section
+.B TARGETFILE
+.IP "--rpc-callback <path>"
+Execute an external program. This program is called with some commandline arguments.
+See
+.BR amqp-rpc-callback (1)
+for description of them.
+.IP "--rpc-callback-timeout <int>"
+Maximum execution time of the callback in seconds.
+.IP "--rpc-workdir <directory>"
+Directory to store temporary files.
+.IP "--rpc-nodelete"
+Don't delete the temporary file used during callback processing. This is
+also enabled when debugging with
+.B -d
+
+.RE
+.BR "Message Arguments:"
+.RS
+.IP "-y, --vhost <str>"
+Connect to the amqp-vhost
+(default: /)
+.IP "-x, --exchange <str>"
+Publish Message to this exchange on the vhost. Use "" for empty
+exchange, when responding to a reply_to propterie
+(default: amq.topic
+.IP "-r, --routingkey"
+Set the routingkey of the message.
+(default: rk.default)
+.IP "-m, --deliverymode <1|2>"
+Set the deliverymode. 1 transient | 2 persistent
+(default: 2)
+.IP "-f, --additional-field key=value"
+Add additional key=value pairs to header of message. Can be called multible times.
+.IP "-i, --priority <int>"
+Assign a priority in range of 0-255 to the message.
+The lowest priority is 0 which is the default.
+The max-priority is defined as a property of the queue but cannot be larger then 255.
+When a queue fills up the message with the highest priority is processed first.
+.IP "-j, --appid"
+sets the app_id property of the amqp-message. If the environment 
+.B APPID
+is specified it will be used.
+ default: \\$APPID:${APPID};hostname:${HOSTNAME};user:${UID};cwd:${CWD};pid:${PID};ppid:{ParentPID}
+.IP "-u, --userid <str>"
+Sets the user_id propertie of the message. If set the amqp-node may checks if user_id and
+connected user (CN in case of a certificate) are identical.
+.IP "-R, --reply_to <str>"
+Sets the reply_to property of the amqp-message.
+.IP "-C, --correlation_id <str>"
+Sets the correlation_id property of the amqp-message.
+.IP "-V, --cluster_id"
+Sets the cluster_id property of the amqp-message.
+.IP "-M, --mimetype <mimetype,encoding>"
+Set the mimetype and encoding properties of the message.
+.I Example:
+application/pdf,binary
+
+the default is 'guess' which uses the gnu file utility to
+guess the mimetype and encoding of the messagefile. If this
+fails, the default is application/octet-stream,binary is
+used
+
+.RE
+.BR "Mail Arguments:"
+
+The pulisher is able to send mails if a critical error occurs.
+.RS
+.IP "--mail"
+Boolean flag to enable mailsending
+.IP "--mail-target <To:>"
+default: trouble@example.net
+.IP "--mail-source <From:>"
+default: amqp@example.net
+.IP "--mail-subject <Subject:>"
+default: Amqp critical messages
+.IP "--mail-host <host|ip>"
+default: smtp.example.net
+.IP "--mail-user <str>"
+The username to use for mail authentification
+.IP "--mail-password <str>"
+The password to use for mail authentification
+
+.RE
+.BR "logging and debugging Arguments:"
+.RS
+.IP "-d, --debug"
+Enable debugging for application and python-pika
+.IP "-v, --verbose"
+Enable verbose output
+.IP "--version"
+the versionstring
+
+.RE
+.BR "misc Arguments:"
+.RS
+.IP "-F, --fileprog <path>"
+the location of the gnu file program to use to guess the mimetype.
+
+.SH ENVIRONMENT
+.IP APPID
+added to the app_id propertie of the message.
+.SH DIAGNOSTICS
+Exit codes
+.RS
+0 everything fine
+
+1 connection to amqp-node failed
+
+2 timeout during rpc-connection
+
+3 sending message failed
+.RE
+.SH BUGS
+The command name should have been chosen more carefully
+to reflect its purpose.
+.SH AUTHOR
+
+.SH "SEE ALSO"
+.BR amqp-rpc-callback (1)
+.BR amqp-consumer (1)
+.BR amqp-consumer-callback (1)
+
