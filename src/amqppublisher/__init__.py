@@ -4,9 +4,12 @@ import os
 import socket
 import pwd
 from pika import ConnectionParameters
-from pika.credentials import ExternalCredentials
+from pika.credentials import ExternalCredentials, PlainCredentials
 from ssl import CERT_REQUIRED
 import signal
+
+log_format_debug = "%(levelname) -10s %(asctime)s %(name) -30s %(funcName) -35s %(lineno) -5d: %(message)s"
+log_format_normal = "%(asctime)s %(name) -30s %(levelname) -10s %(message)s"
 
 class Timeout():
     """Timeout class using ALARM signal."""
@@ -278,7 +281,7 @@ else:
 
     
 
-logger = [ logging.getLogger("tazpublisher"),
+logger = [ logging.getLogger(__name__),
            logging.getLogger('pika'),
            logging.getLogger('pika.callback'),
            logging.getLogger('pika.adapters.base_connection')]
@@ -306,3 +309,8 @@ for i in logger:
     else:
         i.setLevel(logging.ERROR)
         
+
+if args.debug:            
+    logging.basicConfig(format=(log_format_debug))
+else:
+    logging.basicConfig(format=(log_format_normal))
