@@ -168,6 +168,27 @@ the versionstring
 .RS
 .IP "-F, --fileprog <path>"
 the location of the gnu file program to use to guess the mimetype.
+.SH FILES
+.B @mydefaults.conf
+Sometimes, for example when dealing with a particularly long argument
+lists, it may make sense to keep the list of arguments in a file
+rather than typing it out at the command line. Arguments read from a
+file must by default be one per line and are treated as if they were
+in the same place as the original file referencing argument on the
+command line.
+
+.RE
+.BR "Example file"
+.RS
+  -o
+  amqp.example.com
+  -U
+  admin
+
+.RE
+.BR "Example commandline"
+.RS
+ amqp-publisher @host.conf @msgprops.conf @custom.conf data.json 
 
 .SH ENVIRONMENT
 .IP APPID

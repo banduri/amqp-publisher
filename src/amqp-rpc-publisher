@@ -26,10 +26,12 @@ try:
     headerdata = None
     mime_type = "application/octet-stream"
     mime_encoding = "binary"
+    reply_to = None
 
     with open(args.inputfile,"rb") as fd:
         body = fd.read()
-        
+
+    
     if args.mimetype == "guess":
         try:
 
@@ -58,7 +60,6 @@ try:
             except Exception as e:
                 logging.warning("could not add additional headers %s" %e)
 
-    reply_to = None
     if args.rpc:
         result = ch.queue_declare(exclusive=True)
         reply_to = result.method.queue

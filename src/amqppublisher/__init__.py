@@ -34,6 +34,7 @@ class RawTextDefaultsHelpFormatter(argparse.RawDescriptionHelpFormatter,argparse
     pass
 
 parser = argparse.ArgumentParser(description = 'Sende a file to amqp-host',
+                                 fromfile_prefix_chars='@',
                                  formatter_class = RawTextDefaultsHelpFormatter,
                                  usage='%(prog)s [options] <inputfile>',
                                  epilog = """
@@ -44,6 +45,9 @@ Example:
 ./amqp-publisher --tls -c foo.crt -k foo.key -a cacert.crt <data.json>
 
 ./amqp-publisher --rpc --rpc-callback /usr/local/sbin/callback.sh <data.json> 
+
+./amqp-publisher @mydefaults.conf 
+
  
 """)
 
