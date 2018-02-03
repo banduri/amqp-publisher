@@ -53,6 +53,12 @@ class TestParseAdditionalHeaders(unittest.TestCase):
         self.assertDictEqual(headers,{ 'test1': 'a',
                                        'test3': 'c'} )
 
+    def test_headers_overwrite(self):
+        args = self.ArgsClass(additional_field = ['test=a','test2=b','test=c'])
+        headers = self.parseAdditionalHeaders(args)
+        self.assertDictEqual(headers,{ 'test': 'c',
+                                       'test2': 'b'} )
+        
         
 if __name__ == '__main__':
     unittest.main()
