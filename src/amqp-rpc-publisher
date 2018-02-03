@@ -20,7 +20,6 @@ def main():
   
     try:
         body = None
-        reply_to = None
 
         with open(args.inputfile,"rb") as fd:
             body = fd.read()
@@ -50,7 +49,7 @@ def main():
         if args.rpc:
 
             if args.debug:
-                print(reply_to)
+                print(args.reply_to)
             # nur an einer Nachricht interressiert, daher next auf das generatorobjekt
             try:
                 (ch,con) = AMQPConnectionBorg(args).getConnection()
