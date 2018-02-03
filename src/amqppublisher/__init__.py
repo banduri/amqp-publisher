@@ -6,32 +6,11 @@ import pwd
 from pika import ConnectionParameters
 from pika.credentials import ExternalCredentials, PlainCredentials
 from ssl import CERT_REQUIRED
-import signal
+
+from amqppublisher.tools import RawTextDefaultsHelpFormatter
 
 log_format_debug  = "%(asctime)s %(name) -30s %(funcName) -35s %(lineno) -5d: %(message)s"
 log_format_normal = "%(asctime)s %(name) -30s %(levelname) -10s %(message)s"
-
-class Timeout():
-    """Timeout class using ALARM signal."""
-    class Timeout(Exception):
-        pass
-
-    def __init__(self, sec):
-        self.sec = sec
-
-    def __enter__(self):
-        signal.signal(signal.SIGALRM, self.raise_timeout)
-        signal.alarm(self.sec)
-
-    def __exit__(self, *args):
-        signal.alarm(0)    # disable alarm
-
-    def raise_timeout(self, *args):
-        raise Timeout.Timeout()
-
-
-class RawTextDefaultsHelpFormatter(argparse.RawDescriptionHelpFormatter,argparse.ArgumentDefaultsHelpFormatter):
-    pass
 
 parser = argparse.ArgumentParser(description = 'Sende a file to amqp-host',
                                  fromfile_prefix_chars='@',

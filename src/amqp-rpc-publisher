@@ -11,6 +11,7 @@ import sys
 from pprint import pprint,pformat
 
 from amqppublisher import args, parameters, Timeout
+from amqppublisher.tools import Timeout, TimeoutException
 log = logging.getLogger(__name__)
 
 ch = None
