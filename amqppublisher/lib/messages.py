@@ -23,13 +23,13 @@ def getEncoding(args):
             result = subprocess.check_output(cmd)
             mime_type = result.split(";")[0].strip()
             mime_encoding = result.split("=")[1].strip()
-        except:
-            pass
+        except Exception as e:
+            log.warning("could not guess mimetype using default %s %s" %(type(e),str(e)))
     else:
         try:
             (mime_type,mime_encoding) = args.mimetype.split(",",maxsplit=1)
-        except:
-            pass
+        except Exception as e:
+            log.warning("could not parse mimetype using default %s %s" %(type(e),str(e)))
 
     return (mime_type,mime_encoding)
 
@@ -43,7 +43,7 @@ def parseAdditionalHeaders(args):
                 headerdata[k]=v
         
             except Exception as e:
-                logging.warning("could not add additional headers %s" %e)
+                log.warning("could not add additional headers %s" %e)
     return headerdata
 
 
