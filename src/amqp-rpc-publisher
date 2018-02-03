@@ -13,13 +13,36 @@ from pprint import pprint,pformat
 
 from amqppublisher import args
 from amqppublisher.tools import Timeout, TimeoutException
-from amqppublisher.connection import setupConnection
+from amqppublisher.connection import AMQPConnectionBorg
 log = logging.getLogger(__name__)
 
+def getEncoding(args):
+    """
+    """
+    mime_encoding = None
+    mime_type = None
+    
+    if args.mimetype == "guess":
+        try:
 
+            # get the mimetype of the file 
+            cmd = [args.fileprog,'-b','--mime',args.inputfile]
+            result = subprocess.check_output(cmd)
+            mime_type = result.split(";")[0].strip()
+            mime_encoding = result.split("=")[1].strip()
+        except:
+            pass
+    else:
+        try:
+            (mime_type,mime_encoding) = args.mimetype.split(",",maxsplit=1)
+        except:
+            pass
+
+    return (mime_type,mime_encoding)
 
 def main():
-    ch = setupConnection(args)
+    (ch, con) = AMQPConnectionBorg(args).getConnection()
+    
     try:
         body = None
         headerdata = None
@@ -30,23 +53,8 @@ def main():
         with open(args.inputfile,"rb") as fd:
             body = fd.read()
 
+        (mime_type,mime_encoding) = getEncoding(args)
         
-        if args.mimetype == "guess":
-            try:
-
-                # get the mimetype of the file 
-                cmd = [args.fileprog,'-b','--mime',args.inputfile]
-                result = subprocess.check_output(cmd)
-                mime_type = result.split(";")[0].strip()
-                mime_encoding = result.split("=")[1].strip()
-            except:
-                pass
-        else:
-            try:
-                (mime_type,mime_encoding) = args.mimetype.split(",",maxsplit=1)
-            except:
-                pass
-
         if args.additional_field:
             if not headerdata:
                 headerdata={}
@@ -58,6 +66,8 @@ def main():
         
                 except Exception as e:
                     logging.warning("could not add additional headers %s" %e)
+
+        (ch,con) = setupConnection(args)
 
         if args.rpc:
             result = ch.queue_declare(exclusive=True)
