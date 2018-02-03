@@ -28,7 +28,12 @@ if args.mail:
     # die von pika sind hier unerheblich / too much
     log.addHandler(sh)
 
-logging.basicConfig()
+
+if args.debug:            
+    logging.basicConfig(format=(log_format_debug))
+else:
+    logging.basicConfig(format=(log_format_normal))
+
 for i in logger:
     if args.verbose:
         i.setLevel(logging.INFO)
@@ -37,8 +42,3 @@ for i in logger:
     else:
         i.setLevel(logging.ERROR)
         
-
-if args.debug:            
-    logging.basicConfig(format=(log_format_debug))
-else:
-    logging.basicConfig(format=(log_format_normal))

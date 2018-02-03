@@ -168,9 +168,11 @@ def main():
 
         # das hier wird 100% ausgefuehrt, auch wenn in dem exception handling vorher
         # schon ein sys.exit hinterlegt ist.
-        (ch,con) = AMQPConnectionBorg(args).getConnection()
-        ch.close()
-        con.close()
+
+        if AMQPConnectionBorg(args).is_connected:
+            (ch,con) = AMQPConnectionBorg(args).getConnection()
+            ch.close()
+            con.close()
 
     sys.exit(0)
 
