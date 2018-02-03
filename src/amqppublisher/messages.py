@@ -10,8 +10,8 @@ log = logging.getLogger(__name__)
 def getEncoding(args):
     """
     """
-    mime_encoding = None
-    mime_type = None
+    mime_type = "application/octet-stream"
+    mime_encoding = "binary"
     
     if args.mimetype == "guess":
         try:
