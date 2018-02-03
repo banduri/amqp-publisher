@@ -41,8 +41,7 @@ def getEncoding(args):
     return (mime_type,mime_encoding)
 
 def main():
-    (ch, con) = AMQPConnectionBorg(args).getConnection()
-    
+   
     try:
         body = None
         headerdata = None
@@ -67,9 +66,9 @@ def main():
                 except Exception as e:
                     logging.warning("could not add additional headers %s" %e)
 
-        (ch,con) = setupConnection(args)
 
         if args.rpc:
+            (ch,con) = AMQPConnectionBorg(args).getConnection()
             result = ch.queue_declare(exclusive=True)
             reply_to = result.method.queue
         else:
@@ -94,6 +93,9 @@ def main():
 
         try:
             log.info("try to published Message (%d Bytes): %s" %(len(body),str(props)))
+            
+            (ch,con) = AMQPConnectionBorg(args).getConnection()
+
             ch.basic_publish(exchange=args.exchange,
                              routing_key=args.routingkey,
                              properties=props,
@@ -103,13 +105,16 @@ def main():
             log.critical("could not published Message (%d Bytes): %s" %(len(body),str(props)))
             
         if args.rpc:
-            ch.basic_qos(prefetch_count = 1)
 
             if args.debug:
                 print(reply_to)
             # nur an einer Nachricht interressiert, daher next auf das generatorobjekt
             try:
+                (ch,con) = AMQPConnectionBorg(args).getConnection()
                 with Timeout(args.rpc_timeout):
+
+                    ch.basic_qos(prefetch_count = 1)
+
                     (method, properties, body) = next(ch.consume(queue = reply_to))
                     if args.rpc_targetfile or args.rpc_callback:
                         if not args.rpc_targetfile:
@@ -160,8 +165,10 @@ def main():
         sys.exit(3)
 
     finally:
+
         # das hier wird 100% ausgefuehrt, auch wenn in dem exception handling vorher
         # schon ein sys.exit hinterlegt ist.
+        (ch,con) = AMQPConnectionBorg(args).getConnection()
         ch.close()
         con.close()
 
