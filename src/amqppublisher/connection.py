@@ -55,7 +55,6 @@ class AMQPConnectionBorg:
         """
         @result: returns a pika channel
         """
-        log.error("%s",self.__dict__)
         if all([self.ch,self.con]):
                 return (self.ch,self.con)
 
@@ -66,7 +65,7 @@ class AMQPConnectionBorg:
                 return (self.ch,self.con)
             except Exception as e:
                 log.critical("could not connect to server with paramters: %s\n  last Exception: %s\n  Additional arguments:%s" %(self.parameters,e,self.config))
-                sys.exit(1)
+                raise(e)
             finally:
                 self.connectiontry = True
 

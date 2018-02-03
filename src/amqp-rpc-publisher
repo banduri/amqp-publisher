@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-import pika
 import sys
 import subprocess
-import time
 
-import uuid
 import logging
 import sys
 from pprint import pprint,pformat
@@ -14,34 +11,13 @@ from pprint import pprint,pformat
 from amqppublisher import args
 from amqppublisher.tools import Timeout, TimeoutException
 from amqppublisher.connection import AMQPConnectionBorg
+from amqppublisher.messages import getMessageProperties
 log = logging.getLogger(__name__)
 
-def getEncoding(args):
-    """
-    """
-    mime_encoding = None
-    mime_type = None
-    
-    if args.mimetype == "guess":
-        try:
 
-            # get the mimetype of the file 
-            cmd = [args.fileprog,'-b','--mime',args.inputfile]
-            result = subprocess.check_output(cmd)
-            mime_type = result.split(";")[0].strip()
-            mime_encoding = result.split("=")[1].strip()
-        except:
-            pass
-    else:
-        try:
-            (mime_type,mime_encoding) = args.mimetype.split(",",maxsplit=1)
-        except:
-            pass
-
-    return (mime_type,mime_encoding)
 
 def main():
-   
+  
     try:
         body = None
         headerdata = None
@@ -52,44 +28,13 @@ def main():
         with open(args.inputfile,"rb") as fd:
             body = fd.read()
 
-        (mime_type,mime_encoding) = getEncoding(args)
-        
-        if args.additional_field:
-            if not headerdata:
-                headerdata={}
-        
-            for x in args.additional_field:
-                try:
-                    (k,v) = x.split("=",1)
-                    headerdata[k]=v
-        
-                except Exception as e:
-                    logging.warning("could not add additional headers %s" %e)
-
 
         if args.rpc:
             (ch,con) = AMQPConnectionBorg(args).getConnection()
             result = ch.queue_declare(exclusive=True)
-            reply_to = result.method.queue
-        else:
-            reply_to = args.reply_to
+            args.reply_to = result.method.queue
 
-
-        props = pika.BasicProperties(
-            delivery_mode = args.deliverymode,
-            content_type = mime_type,
-            content_encoding = mime_encoding,
-            headers = headerdata,
-            priority = args.priority,
-            correlation_id = args.correlation_id, 
-            reply_to = reply_to,
-            expiration = None, 
-            message_id = str(uuid.uuid4()), # make a random uuid
-            timestamp = int(time.time()),
-            type = None, 
-            user_id = args.userid,
-            app_id = args.appid,
-            cluster_id = args.cluster_id)
+        props = getMessageProperties(args)
 
         try:
             log.info("try to published Message (%d Bytes): %s" %(len(body),str(props)))
@@ -101,7 +46,8 @@ def main():
                              properties=props,
                              body=body)
             log.info("done: (%d Bytes): %s" %(len(body),str(props)))
-        except:
+        except Exception as e:
+            log.critical("Exception: %s %s" %(type(e),str(e)))
             log.critical("could not published Message (%d Bytes): %s" %(len(body),str(props)))
             
         if args.rpc:
@@ -169,7 +115,7 @@ def main():
         # das hier wird 100% ausgefuehrt, auch wenn in dem exception handling vorher
         # schon ein sys.exit hinterlegt ist.
 
-        if AMQPConnectionBorg(args).is_connected:
+        if AMQPConnectionBorg(args).is_connected():
             (ch,con) = AMQPConnectionBorg(args).getConnection()
             ch.close()
             con.close()

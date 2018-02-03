@@ -5,7 +5,7 @@ from amqppublisher.config import parser
 
 log_format_debug  = "%(asctime)s %(name) -30s %(funcName) -35s %(lineno) -5d: %(message)s"
 log_format_normal = "%(asctime)s %(name) -30s %(levelname) -10s %(message)s"
-
+log_format_normal = log_format_debug
 args = parser.parse_args()
 
 
