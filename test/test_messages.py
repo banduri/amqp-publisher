@@ -62,18 +62,37 @@ class TestParseAdditionalHeaders(unittest.TestCase):
 
 
 #patch system buildins for consistant values and testisolation
-@patch('time.time',create=True,new=MagicMock(return_value=1337))
-@patch('uuid.uuid4',create=True,new=MagicMock(return_value='11111111-2222-3333-4444-555555555555'))
-@patch('amqppublisher.lib.messages.parseAdditionalHeaders',new=MagicMock(return_value={}))
-@patch('amqppublisher.lib.messages.getEncoding',new=MagicMock(return_value=("application/testdata-punk","text")))
 class TestMessagePropertie(unittest.TestCase):
+    # since not using patch as a decorator, no *args is needed
     def setUp(self):
-        self.ArgsClass = namedtuple("ArgsClass",["additional_field","deliverymode","priority","correlation_id","reply_to","userid","appid","cluster_id"])
+        self.patches = [
+            patch('time.time',create=True,
+                  new=MagicMock(return_value=1337)),
+            patch('uuid.uuid4',create=True,
+                  new=MagicMock(return_value='11111111-2222-3333-4444-555555555555')),
+            patch('amqppublisher.lib.messages.parseAdditionalHeaders',
+                  new=MagicMock(return_value={})),
+            patch('amqppublisher.lib.messages.getEncoding',
+                  new=MagicMock(return_value=("application/testdata-punk","text")))
+        ]
+        for x in self.patches:
+            x.start()
+        
+        self.ArgsClass = namedtuple("ArgsClass",["additional_field","deliverymode",
+                                                 "priority","correlation_id","reply_to",
+                                                 "userid","appid","cluster_id"])
 
         self.getMessageProperties = amqppublisher.lib.messages.getMessageProperties
-        self.args = self.ArgsClass(deliverymode=123, priority=34, additional_field=None, correlation_id=None, reply_to="narfasdasd",userid=None, appid=None, cluster_id=None)
+        self.args = self.ArgsClass(deliverymode=123, priority=34,
+                                   additional_field=None, correlation_id=None,
+                                   reply_to="narfasdasd",userid=None, appid=None,
+                                   cluster_id=None)
+
+    def tearDown(self):
+        for x in self.patches:
+            x.stop()
         
-    def test_basicproperty_setup(self,*args):
+    def test_basicproperty_setup(self):
 
         props = self.getMessageProperties(self.args)
 
@@ -81,14 +100,14 @@ class TestMessagePropertie(unittest.TestCase):
         self.assertEqual(props.priority, self.args.priority)
         self.assertIsInstance(props, BasicProperties)
 
-    def test_basicproperty_uuid(self,*args):
+    def test_basicproperty_uuid(self):
 
         props = self.getMessageProperties(self.args)
 
         # from patching
         self.assertEqual(props.message_id, '11111111-2222-3333-4444-555555555555')
 
-    def test_basicproperty_time(self,*args):
+    def test_basicproperty_time(self):
         props = self.getMessageProperties(self.args)
         
         # from patching
