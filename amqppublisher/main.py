@@ -8,22 +8,31 @@ import sys
 from pprint import pprint,pformat
 
 
-from amqppublisher import args
-from amqppublisher.tools import Timeout, TimeoutException
-from amqppublisher.connection import AMQPConnectionBorg
-from amqppublisher.messages import getMessageProperties
+from lib.tools import Timeout, TimeoutException
+from lib.connection import AMQPConnectionBorg
+from lib.messages import getMessageProperties
+from lib.config import parser
+
 log = logging.getLogger(__name__)
 
+log_format_debug  = "%(asctime)s %(name) -30s %(funcName) -35s %(lineno) -5d: %(message)s"
+log_format_normal = "%(asctime)s %(name) -30s %(levelname) -10s %(message)s"
+log_format_normal = log_format_debug
 
 
-def main():
+logger = [ log,
+           logging.getLogger('pika'),
+           logging.getLogger('pika.callback'),
+           logging.getLogger('pika.adapters.base_connection')]
+
+
+def main(args):
   
     try:
         body = None
 
         with open(args.inputfile,"rb") as fd:
             body = fd.read()
-
 
         if args.rpc:
             (ch,con) = AMQPConnectionBorg(args).getConnection()
@@ -95,10 +104,10 @@ def main():
                     if not (args.debug or args.rpc_nodelete):
                         os.remove(args.rpc_targetfile)
                 ch.basic_ack(delivery_tag = method.delivery_tag)
-            except Timeout.Timeout as e:
+            except TimeoutException as e:
                 raise(e)
 
-    except Timeout.Timeout as e:
+    except TimeoutException as e:
         log.critical("Timeout beim warten auf die rpc-nachricht: \n Config:\n %s \n %s" %(pformat(args),pformat(e)))
         sys.exit(2)
 
@@ -119,5 +128,33 @@ def main():
     sys.exit(0)
 
 if __name__ == "__main__":
-    main()
+    args = parser.parse_args(sys.argv)
+
+    if args.mail:
+        sh = logging.handlers.SMTPHandler(mailhost = args.mail_host,
+                                          fromaddr = args.mail_source,
+                                          toaddrs = [args.mail_target],
+                                          subject = args.mail_subject,
+                                          credentials = (args.mail_user,args.mail_pass),
+                                          secure = (None, ))
+        sh.setLevel(logging.ERROR)
+        # wir senden nur unsere eigenen logmeldungen per mail
+        # die von pika sind hier unerheblich / too much
+        log.addHandler(sh)
+
+
+    if args.debug:            
+        logging.basicConfig(format=(log_format_debug))
+    else:
+        logging.basicConfig(format=(log_format_normal))
+
+    for i in logger:
+        if args.verbose:
+            i.setLevel(logging.INFO)
+        elif args.debug:
+            i.setLevel(logging.DEBUG)
+        else:
+            i.setLevel(logging.ERROR)
+
+    main(args)
     

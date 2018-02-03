@@ -7,6 +7,8 @@ from pika import BasicProperties
 
 log = logging.getLogger(__name__)
 
+
+
 def getEncoding(args):
     """
     """

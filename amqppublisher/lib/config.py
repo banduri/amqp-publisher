@@ -5,7 +5,7 @@ import os
 import socket
 import pwd
 
-from amqppublisher.tools import RawTextDefaultsHelpFormatter
+from lib.tools import RawTextDefaultsHelpFormatter
 
 parser = argparse.ArgumentParser(description = 'Sende a file to amqp-host',
                                  fromfile_prefix_chars='@',
