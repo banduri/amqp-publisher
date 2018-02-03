@@ -1,10 +1,4 @@
 import logging
-import os
-import socket
-import pwd
-from pika import ConnectionParameters
-from pika.credentials import ExternalCredentials, PlainCredentials
-from ssl import CERT_REQUIRED
 
 from amqppublisher.config import parser
 
@@ -14,39 +8,6 @@ log_format_normal = "%(asctime)s %(name) -30s %(levelname) -10s %(message)s"
 
 args = parser.parse_args()
 
-
-ssl_options = dict(
-    certfile = args.certfile,
-    keyfile = args.keyfile,
-    ca_certs = args.cacert,
-    cert_reqs = CERT_REQUIRED )
-
-
-parameters=None
-if args.tls:
-    parameters=ConnectionParameters(
-        host = args.host,
-        port = args.port,
-        virtual_host = args.vhost,
-        connection_attempts = args.retry,
-        retry_delay = args.retrydelay,
-        socket_timeout = args.sockettimeout,
-        credentials = ExternalCredentials(),
-        ssl = True,
-        ssl_options = ssl_options)
-else:
-    parameters=ConnectionParameters(
-        host = args.host,
-        port = args.port,
-        virtual_host = args.vhost,
-        connection_attempts = args.retry,
-        retry_delay = args.retrydelay,
-        socket_timeout = args.sockettimeout,
-        credentials = PlainCredentials(username=args.username,
-                                       password=args.password),
-        ssl = True)
-
-    
 
 logger = [ logging.getLogger(__name__),
            logging.getLogger('pika'),

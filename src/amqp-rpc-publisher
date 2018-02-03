@@ -10,152 +10,153 @@ import logging
 import sys
 from pprint import pprint,pformat
 
-from amqppublisher import args, parameters, Timeout
+
+from amqppublisher import args
 from amqppublisher.tools import Timeout, TimeoutException
+from amqppublisher.connection import setupConnection
 log = logging.getLogger(__name__)
 
-ch = None
-try:
-    con=pika.BlockingConnection(parameters)
-    ch=con.channel()
-except Exception as e:
-    log.critical("could not connect to server with paramters: %s\n  last Exception: %s\n  Additional arguments:%s" %(parameters,e,args))
-    sys.exit(1)
-
-try:
-    body = None
-    headerdata = None
-    mime_type = "application/octet-stream"
-    mime_encoding = "binary"
-    reply_to = None
-
-    with open(args.inputfile,"rb") as fd:
-        body = fd.read()
-
-    
-    if args.mimetype == "guess":
-        try:
-
-            # get the mimetype of the file 
-            cmd = [args.fileprog,'-b','--mime',args.inputfile]
-            result = subprocess.check_output(cmd)
-            mime_type = result.split(";")[0].strip()
-            mime_encoding = result.split("=")[1].strip()
-        except:
-            pass
-    else:
-        try:
-            (mime_type,mime_encoding) = args.mimetype.split(",",maxsplit=1)
-        except:
-            pass
-
-    if args.additional_field:
-        if not headerdata:
-            headerdata={}
-    
-        for x in args.additional_field:
-            try:
-                (k,v) = x.split("=",1)
-                headerdata[k]=v
-    
-            except Exception as e:
-                logging.warning("could not add additional headers %s" %e)
-
-    if args.rpc:
-        result = ch.queue_declare(exclusive=True)
-        reply_to = result.method.queue
-    else:
-        reply_to = args.reply_to
 
 
-    props = pika.BasicProperties(
-        delivery_mode = args.deliverymode,
-        content_type = mime_type,
-        content_encoding = mime_encoding,
-        headers = headerdata,
-        priority = args.priority,
-        correlation_id = args.correlation_id, 
-        reply_to = reply_to,
-        expiration = None, 
-        message_id = str(uuid.uuid4()), # make a random uuid
-        timestamp = int(time.time()),
-        type = None, 
-        user_id = args.userid,
-        app_id = args.appid,
-        cluster_id = args.cluster_id)
-
+def main():
+    ch = setupConnection(args)
     try:
-        log.info("try to published Message (%d Bytes): %s" %(len(body),str(props)))
-        ch.basic_publish(exchange=args.exchange,
-                         routing_key=args.routingkey,
-                         properties=props,
-                         body=body)
-        log.info("done: (%d Bytes): %s" %(len(body),str(props)))
-    except:
-        log.critical("could not published Message (%d Bytes): %s" %(len(body),str(props)))
+        body = None
+        headerdata = None
+        mime_type = "application/octet-stream"
+        mime_encoding = "binary"
+        reply_to = None
+
+        with open(args.inputfile,"rb") as fd:
+            body = fd.read()
+
         
-    if args.rpc:
-        ch.basic_qos(prefetch_count = 1)
+        if args.mimetype == "guess":
+            try:
 
-        if args.debug:
-            print(reply_to)
-        # nur an einer Nachricht interressiert, daher next auf das generatorobjekt
+                # get the mimetype of the file 
+                cmd = [args.fileprog,'-b','--mime',args.inputfile]
+                result = subprocess.check_output(cmd)
+                mime_type = result.split(";")[0].strip()
+                mime_encoding = result.split("=")[1].strip()
+            except:
+                pass
+        else:
+            try:
+                (mime_type,mime_encoding) = args.mimetype.split(",",maxsplit=1)
+            except:
+                pass
+
+        if args.additional_field:
+            if not headerdata:
+                headerdata={}
+        
+            for x in args.additional_field:
+                try:
+                    (k,v) = x.split("=",1)
+                    headerdata[k]=v
+        
+                except Exception as e:
+                    logging.warning("could not add additional headers %s" %e)
+
+        if args.rpc:
+            result = ch.queue_declare(exclusive=True)
+            reply_to = result.method.queue
+        else:
+            reply_to = args.reply_to
+
+
+        props = pika.BasicProperties(
+            delivery_mode = args.deliverymode,
+            content_type = mime_type,
+            content_encoding = mime_encoding,
+            headers = headerdata,
+            priority = args.priority,
+            correlation_id = args.correlation_id, 
+            reply_to = reply_to,
+            expiration = None, 
+            message_id = str(uuid.uuid4()), # make a random uuid
+            timestamp = int(time.time()),
+            type = None, 
+            user_id = args.userid,
+            app_id = args.appid,
+            cluster_id = args.cluster_id)
+
         try:
-            with Timeout(args.rpc_timeout):
-                (method, properties, body) = next(ch.consume(queue = reply_to))
-                if args.rpc_targetfile or args.rpc_callback:
-                    if not args.rpc_targetfile:
-                        args.rpc_targetfile = "asdf"
-                    with open(args.rpc_targetfile,"wb") as fd:
-                        fd.write(body)
-                else:
-                    # wir gehen einfach davon aus, dass es sich um utf8 handelt
-                    sys.stdout.write(str(body,'utf-8'))
-            if args.rpc_callback:
-                tmparray = []
-                if properties.headers:
-                    for k,v in properties.headers.items():
-                        tmparray.append("-h")
-                        tmparray.append("%s=%s" %(k,v))
+            log.info("try to published Message (%d Bytes): %s" %(len(body),str(props)))
+            ch.basic_publish(exchange=args.exchange,
+                             routing_key=args.routingkey,
+                             properties=props,
+                             body=body)
+            log.info("done: (%d Bytes): %s" %(len(body),str(props)))
+        except:
+            log.critical("could not published Message (%d Bytes): %s" %(len(body),str(props)))
+            
+        if args.rpc:
+            ch.basic_qos(prefetch_count = 1)
 
-                log.info(str(properties))
-                commandarray = [args.callbackcommand, 
-                                "-f", str(filename),
-                                "-r", str(method.routing_key),
-                                "-m", str(properties.content_type),
-                                "-e", str(properties.content_encoding),
-                                "-i", str(properties.message_id),
-                                "-p", str(properties.priority),
-                                "-d", str(properties.delivery_mode),
-                                "-c", str(properties.correlation_id),
-                                "-R", str(properties.reply_to),
-                                "-x", str(properties.expiration),
-                                "-y", str(properties.type),
-                                "-u", str(properties.user_id),
-                                "-a", str(properties.app_id),
-                                "-C", str(properties.cluster_id),
-                                "-t", str(properties.timestamp)]
-                commandarray.extend(tmparray)
-                subprocess.check_output(commandarray,timeout=args.rpc_callback_timeout)
-                if not (args.debug or args.rpc_nodelete):
-                    os.remove(args.rpc_targetfile)
-            ch.basic_ack(delivery_tag = method.delivery_tag)
-        except Timeout.Timeout as e:
-            raise(e)
+            if args.debug:
+                print(reply_to)
+            # nur an einer Nachricht interressiert, daher next auf das generatorobjekt
+            try:
+                with Timeout(args.rpc_timeout):
+                    (method, properties, body) = next(ch.consume(queue = reply_to))
+                    if args.rpc_targetfile or args.rpc_callback:
+                        if not args.rpc_targetfile:
+                            args.rpc_targetfile = "asdf"
+                        with open(args.rpc_targetfile,"wb") as fd:
+                            fd.write(body)
+                    else:
+                        # wir gehen einfach davon aus, dass es sich um utf8 handelt
+                        sys.stdout.write(str(body,'utf-8'))
+                if args.rpc_callback:
+                    tmparray = []
+                    if properties.headers:
+                        for k,v in properties.headers.items():
+                            tmparray.append("-h")
+                            tmparray.append("%s=%s" %(k,v))
 
-except Timeout.Timeout as e:
-    log.critical("Timeout beim warten auf die rpc-nachricht: \n Config:\n %s \n %s" %(pformat(args),pformat(e)))
-    sys.exit(2)
+                    log.info(str(properties))
+                    commandarray = [args.callbackcommand, 
+                                    "-f", str(filename),
+                                    "-r", str(method.routing_key),
+                                    "-m", str(properties.content_type),
+                                    "-e", str(properties.content_encoding),
+                                    "-i", str(properties.message_id),
+                                    "-p", str(properties.priority),
+                                    "-d", str(properties.delivery_mode),
+                                    "-c", str(properties.correlation_id),
+                                    "-R", str(properties.reply_to),
+                                    "-x", str(properties.expiration),
+                                    "-y", str(properties.type),
+                                    "-u", str(properties.user_id),
+                                    "-a", str(properties.app_id),
+                                    "-C", str(properties.cluster_id),
+                                    "-t", str(properties.timestamp)]
+                    commandarray.extend(tmparray)
+                    subprocess.check_output(commandarray,timeout=args.rpc_callback_timeout)
+                    if not (args.debug or args.rpc_nodelete):
+                        os.remove(args.rpc_targetfile)
+                ch.basic_ack(delivery_tag = method.delivery_tag)
+            except Timeout.Timeout as e:
+                raise(e)
 
-except Exception as e:
-    log.critical("Could not send message \n Config:\n %s \n %s" %(pformat(args),pformat(e)))
-    sys.exit(3)
+    except Timeout.Timeout as e:
+        log.critical("Timeout beim warten auf die rpc-nachricht: \n Config:\n %s \n %s" %(pformat(args),pformat(e)))
+        sys.exit(2)
 
-finally:
-    # das hier wird 100% ausgefuehrt, auch wenn in dem exception handling vorher
-    # schon ein sys.exit hinterlegt ist.
-    ch.close()
-    con.close()
+    except Exception as e:
+        log.critical("Could not send message \n Config:\n %s \n %s" %(pformat(args),pformat(e)))
+        sys.exit(3)
 
-sys.exit(0)
+    finally:
+        # das hier wird 100% ausgefuehrt, auch wenn in dem exception handling vorher
+        # schon ein sys.exit hinterlegt ist.
+        ch.close()
+        con.close()
 
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+    
