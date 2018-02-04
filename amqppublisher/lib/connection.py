@@ -20,7 +20,7 @@ class AMQPConnectionBorg:
                 keyfile = self.config.keyfile,
                 ca_certs = self.config.cacert,
                 cert_reqs = CERT_REQUIRED )
-            if self.config.tls:
+            if self.config.x509:
                 self.parameters=ConnectionParameters(
                     host = self.config.host,
                     port = self.config.port,
