@@ -37,7 +37,7 @@ TCP Socket timeout in seconds (default: 0.25)
 .RE
 .BR "TLS Arguments:"
 .RS
-.IP "--tls"
+.IP "--x509"
 Boolean flage to use certificates instead of username:password to connect to
 the amqp-server
 .IP "-c certfile"

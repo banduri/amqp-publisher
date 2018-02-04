@@ -16,7 +16,7 @@ Example:
 
 ./amqp-publisher -o amqp.example.com -U guest -P guest -y myvhost -x myexchange -r myroutingkey <data.json> 
 
-./amqp-publisher --tls -c foo.crt -k foo.key -a cacert.crt <data.json>
+./amqp-publisher --x509 -c foo.crt -k foo.key -a cacert.crt <data.json>
 
 ./amqp-publisher --rpc --rpc-callback /usr/local/sbin/callback.sh <data.json> 
 
@@ -64,9 +64,9 @@ conparser.add_argument('--sockettimeout', metavar='<seconds>', type = float,
 #################
 # TLS-Options
 #################
-tlsparser = parser.add_argument_group('tls options')
+tlsparser = parser.add_argument_group('x509 options')
 
-tlsparser.add_argument('--tls', help = "use tls-certs instead of username:password", action = "store_true")
+tlsparser.add_argument('--x509', help = "use x509-certs instead of username:password", action = "store_true")
 
 tlsparser.add_argument('-c', type=str, dest='certfile', help = 'certificate to use', metavar='<certfile>',
                        default = '/etc/amqp/amqp.crt')
@@ -74,7 +74,7 @@ tlsparser.add_argument('-c', type=str, dest='certfile', help = 'certificate to u
 tlsparser.add_argument('-k', type=str, dest='keyfile', help = 'private key', metavar='<keyfile>',
                        default = '/etc/amqp/amqp.key')
 
-tlsparser.add_argument('-a',type=str, dest='cacert', help = 'ca to use', metavar='<cacertfile>',
+tlsparser.add_argument('-a',type=str, dest='cacert', help = 'ca to verify server against', metavar='<cacertfile>',
                        default = '/etc/amqp/cacert.crt')
 
 ##############################
