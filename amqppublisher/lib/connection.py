@@ -61,7 +61,7 @@ class AMQPConnectionBorg:
         if not 'connectiontry' in self.__dict__:
             try:
                 self.con = BlockingConnection(self.parameters)
-                self.ch = con.channel()
+                self.ch = self.con.channel()
                 return (self.ch,self.con)
             except Exception as e:
                 log.critical("could not connect to server with paramters: %s\n  last Exception: %s\n  Additional arguments:%s" %(self.parameters,e,self.config))
