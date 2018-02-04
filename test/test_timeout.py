@@ -10,8 +10,7 @@ class TestEncodingMethods(unittest.TestCase):
     def setUp(self):
         self.Timeout = amqppublisher.lib.tools.Timeout
         self.TimeoutException = amqppublisher.lib.tools.TimeoutException
-        self.maxTimeout = 10
-        self.testtime = 1
+        self.maxTimeout = 1
     
     def test_timeout_init(self):
         
@@ -23,15 +22,15 @@ class TestEncodingMethods(unittest.TestCase):
             pass
 
     def test_timeout_with_exit_reset(self):
-        with self.Timeout(self.testtime):
+        with self.Timeout(self.maxTimeout):
             pass
-        sleep(self.testtime+1)
+        sleep(self.maxTimeout+1)
 
     def test_timeout_exception_with(self):
         with self.assertRaises(self.TimeoutException):
-            with self.Timeout(self.testtime):
-                sleep(self.testtime + 1)
+            with self.Timeout(self.maxTimeout):
+                sleep(self.maxTimeout + 1)
 
     def test_timeout_noexception_on_init(self):
-        self.Timeout(self.testtime)
-        sleep(self.testtime + 1)
+        self.Timeout(self.maxTimeout)
+        sleep(self.maxTimeout + 1)
