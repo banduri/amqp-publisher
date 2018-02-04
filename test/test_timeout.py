@@ -5,7 +5,7 @@ from time import sleep
 
 import amqppublisher.lib.tools 
 
-class TestEncodingMethods(unittest.TestCase):
+class TestTimeoutHandling(unittest.TestCase):
 
     def setUp(self):
         self.Timeout = amqppublisher.lib.tools.Timeout
