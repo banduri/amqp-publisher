@@ -1,17 +1,14 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from collections import namedtuple
-import time
-import uuid
-from pika import BasicProperties
 
-import amqppublisher.lib.messages
 
 #disable logger
 @patch('amqppublisher.lib.messages.log.warning')
 class TestEncodingMethods(unittest.TestCase):
 
     def setUp(self):
+        from collections import namedtuple
+        import amqppublisher.lib.messages
         self.ArgsClass = namedtuple("ArgsClass",["fileprog","inputfile","mimetype"])
         self.getEncoding = amqppublisher.lib.messages.getEncoding
 
@@ -37,6 +34,8 @@ class TestEncodingMethods(unittest.TestCase):
 class TestParseAdditionalHeaders(unittest.TestCase):
 
     def setUp(self):
+        from collections import namedtuple
+        import amqppublisher.lib.messages
         self.ArgsClass = namedtuple("ArgsClass",["additional_field"])
         self.parseAdditionalHeaders = amqppublisher.lib.messages.parseAdditionalHeaders
 
@@ -77,6 +76,8 @@ class TestMessagePropertie(unittest.TestCase):
         ]
         for x in self.patches:
             x.start()
+        from collections import namedtuple
+        import amqppublisher.lib.messages
         
         self.ArgsClass = namedtuple("ArgsClass",["additional_field","deliverymode",
                                                  "priority","correlation_id","reply_to",
@@ -93,6 +94,7 @@ class TestMessagePropertie(unittest.TestCase):
             x.stop()
         
     def test_basicproperty_setup(self):
+        from pika import BasicProperties
 
         props = self.getMessageProperties(self.args)
 

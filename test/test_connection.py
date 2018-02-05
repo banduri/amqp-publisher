@@ -2,8 +2,14 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 
-class TestBorgPattern(unittest.TestCase):
+class TestBlockingConnection(MagicMock):
+    def channel(*args,**kwargs):
+        return "test-channel"
 
+
+class TestConnection(unittest.TestCase):
+
+    
     def setUp(self):
         from collections import namedtuple
 
@@ -17,35 +23,32 @@ class TestBorgPattern(unittest.TestCase):
                                    certfile="", keyfile="", cacert="",x509=False )
 
         self.patches = [
+            patch('pika.BlockingConnection', new=TestBlockingConnection),
             patch('pika.ConnectionParameters')
         ]
         for x in self.patches:
             x.start()
-
         import amqppublisher.lib.connection
         self.AMQPConnectionBorg = amqppublisher.lib.connection.AMQPConnectionBorg
-        
+
+
 
     def tearDown(self):
         for x in self.patches:
             x.stop()
-
         del self.AMQPConnectionBorg
         del self.ArgsClass
         del self.args
 
-    def test_borgpattern_init_username(self):
+    def test_connection_notconnected(self):
         b1 = self.AMQPConnectionBorg(self.args)
+        self.assertFalse(b1.is_connected())
 
-    def test_borgpattern_init_x509(self):
-        self.args = self.ArgsClass(host="test", port=34, vhost="/", retry=1,
-                                   retrydelay=1,sockettimeout=0.25,username="test",password="test",
-                                   certfile="", keyfile="", cacert="",x509=True )
+    def test_getconnection(self):
         b1 = self.AMQPConnectionBorg(self.args)
+        testchannel,con = b1.getConnection()
+        self.assertEqual(testchannel,"test-channel")
+        self.assertEqual(testchannel,con.channel())
 
-    def test_borgpattern_two_objects_one_state(self):
-        b1 = self.AMQPConnectionBorg(self.args)
-        b2 = self.AMQPConnectionBorg(self.args)
-        self.assertNotEqual(b1,b2)
-        self.assertEqual(b1.__dict__,b2.__dict__)
-
+            
+    

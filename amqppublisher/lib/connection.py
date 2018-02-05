@@ -1,6 +1,3 @@
-from pika import ConnectionParameters, BlockingConnection
-from pika.credentials import ExternalCredentials, PlainCredentials
-from ssl import CERT_REQUIRED
 import logging
 import sys
 
@@ -9,8 +6,12 @@ log = logging.getLogger(__name__)
 class AMQPConnectionBorg:
     _shared_state = {}
     def __init__(self,args):
+        from pika import ConnectionParameters
+        from pika.credentials import ExternalCredentials, PlainCredentials
+        from ssl import CERT_REQUIRED
+        
         self.__dict__ = self.__class__._shared_state
-
+        
         if not 'initDone' in self.__dict__:
             self.ch = None
             self.con = None
@@ -59,6 +60,8 @@ class AMQPConnectionBorg:
                 return (self.ch,self.con)
 
         if not 'connectiontry' in self.__dict__:
+            from pika import BlockingConnection
+
             try:
                 self.con = BlockingConnection(self.parameters)
                 self.ch = self.con.channel()
