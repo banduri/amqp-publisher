@@ -12,6 +12,7 @@ from lib.tools import Timeout, TimeoutException
 from lib.connection import AMQPConnectionBorg
 from lib.messages import getMessageProperties
 from lib.config import parser
+from lib.rpc import processRPCresult
 
 log = logging.getLogger(__name__)
 
@@ -62,47 +63,12 @@ def main(args):
             # nur an einer Nachricht interressiert, daher next auf das generatorobjekt
             try:
                 (ch,con) = AMQPConnectionBorg(args).getConnection()
+                ch.basic_qos(prefetch_count = 1)
+
                 with Timeout(args.rpc_timeout):
-
-                    ch.basic_qos(prefetch_count = 1)
-
                     (method, properties, body) = next(ch.consume(queue = reply_to))
-                    if args.rpc_targetfile or args.rpc_callback:
-                        if not args.rpc_targetfile:
-                            args.rpc_targetfile = "asdf"
-                        with open(args.rpc_targetfile,"wb") as fd:
-                            fd.write(body)
-                    else:
-                        # wir gehen einfach davon aus, dass es sich um utf8 handelt
-                        sys.stdout.write(str(body,'utf-8'))
-                if args.rpc_callback:
-                    tmparray = []
-                    if properties.headers:
-                        for k,v in properties.headers.items():
-                            tmparray.append("-h")
-                            tmparray.append("%s=%s" %(k,v))
-
-                    log.info(str(properties))
-                    commandarray = [args.callbackcommand, 
-                                    "-f", str(filename),
-                                    "-r", str(method.routing_key),
-                                    "-m", str(properties.content_type),
-                                    "-e", str(properties.content_encoding),
-                                    "-i", str(properties.message_id),
-                                    "-p", str(properties.priority),
-                                    "-d", str(properties.delivery_mode),
-                                    "-c", str(properties.correlation_id),
-                                    "-R", str(properties.reply_to),
-                                    "-x", str(properties.expiration),
-                                    "-y", str(properties.type),
-                                    "-u", str(properties.user_id),
-                                    "-a", str(properties.app_id),
-                                    "-C", str(properties.cluster_id),
-                                    "-t", str(properties.timestamp)]
-                    commandarray.extend(tmparray)
-                    subprocess.check_output(commandarray,timeout=args.rpc_callback_timeout)
-                    if not (args.debug or args.rpc_nodelete):
-                        os.remove(args.rpc_targetfile)
+                    processRPCresult(method, properties, body, args)
+                    
                 ch.basic_ack(delivery_tag = method.delivery_tag)
             except TimeoutException as e:
                 raise(e)
