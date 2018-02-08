@@ -11,16 +11,9 @@ class TestConnection(unittest.TestCase):
 
     
     def setUp(self):
-        from collections import namedtuple
+        from test.helpers import Config, Properties, Method
 
-        self.ArgsClass = namedtuple("ArgsClass",["host","port",
-                                                 "vhost","retry","retrydelay",
-                                                 "sockettimeout","username","password",
-                                                 "certfile","keyfile","cacert","x509" ])
-
-        self.args = self.ArgsClass(host="test", port=34, vhost="/", retry=1,
-                                   retrydelay=1,sockettimeout=0.25,username="test",password="test",
-                                   certfile="", keyfile="", cacert="",x509=False )
+        self.args = Config()
 
         self.patches = [
             patch('pika.BlockingConnection', new=TestBlockingConnection),
@@ -37,7 +30,6 @@ class TestConnection(unittest.TestCase):
         for x in self.patches:
             x.stop()
         del self.AMQPConnectionBorg
-        del self.ArgsClass
         del self.args
 
     def test_connection_notconnected(self):

@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 
 
 #Command Protocoll
@@ -68,29 +69,18 @@ class WriteRPCFile(Command):
 
 class ExecuteRPCCallback(Command):
     
+    
     def __init__(self,config,properties,method,filename):
         self.filename = filename
         self.timeout = config.rpc_callback_timeout
         self.headers = properties.headers.items()
-        self.commandarray = [
-            config.rpc_callback, 
-            "-r", str(method.routing_key),
-            "-m", str(properties.content_type),
-            "-e", str(properties.content_encoding),
-            "-i", str(properties.message_id),
-            "-p", str(properties.priority),
-            "-d", str(properties.delivery_mode),
-            "-c", str(properties.correlation_id),
-            "-R", str(properties.reply_to),
-            "-x", str(properties.expiration),
-            "-y", str(properties.type),
-            "-u", str(properties.user_id),
-            "-a", str(properties.app_id),
-            "-C", str(properties.cluster_id),
-            "-t", str(properties.timestamp)]
-
+        self.properties = properties
+        self.method = method
+        self.commandarray = [ config.rpc_callback ]
+        self.commandarray.extend(self._createcallbackcommand())
+        
     def execute(self):
-        cmd = self.commandarray + self.headers
+        cmd = self.commandarray + self._createhdr()
         cmd.extend(["-f", str(self.filename)])
         subprocess.check_output(cmd,timeout=self.timeout)
 
@@ -102,6 +92,46 @@ class ExecuteRPCCallback(Command):
                 result.append("%s=%s" %(k,v))
         return result
 
+    def _createcallbackcommand(self):
+        result = []
+        args = {}
+        properties = self.properties
+        method = self.method
+        if method.routing_key:
+            args["-r"] = str(method.routing_key)
+        if properties.content_type:
+            args["-m"] = str(properties.content_type)
+        if properties.content_encoding:
+            args["-e"] = str(properties.content_encoding)
+        if properties.message_id:
+            args["-i"] = str(properties.message_id)
+        if properties.priority:
+            args["-p"] = str(properties.priority)
+        if properties.delivery_mode:
+            args["-d"] = str(properties.delivery_mode)
+        if properties.correlation_id:
+            args["-c"] = str(properties.correlation_id)
+        if properties.reply_to:
+            args["-R"] = str(properties.reply_to)
+        if properties.expiration:
+            args["-x"] = str(properties.expiration)
+        if properties.type:
+            args["-y"] = str(properties.type)
+        if properties.user_id:
+            args["-u"] = str(properties.user_id)
+        if properties.app_id:
+            args["-a"] = str(properties.app_id)
+        if properties.cluster_id:
+            args["-C"] = str(properties.cluster_id)
+        if properties.timestamp:
+            args["-t"] = str(properties.timestamp)
+
+        for x in args.items():
+            result.extend(x)
+            
+        return result
+        
+        
 
 def processRPCresult(method,properties,body,config):
 

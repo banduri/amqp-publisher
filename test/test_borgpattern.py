@@ -5,16 +5,11 @@ from unittest.mock import MagicMock, patch
 class TestBorgPattern(unittest.TestCase):
 
     def setUp(self):
-        from collections import namedtuple
+        from test.helpers import Config
 
-        self.ArgsClass = namedtuple("ArgsClass",["host","port",
-                                                 "vhost","retry","retrydelay",
-                                                 "sockettimeout","username","password",
-                                                 "certfile","keyfile","cacert","x509" ])
+        self.Config = Config
+        self.args = Config()
 
-        self.args = self.ArgsClass(host="test", port=34, vhost="/", retry=1,
-                                   retrydelay=1,sockettimeout=0.25,username="test",password="test",
-                                   certfile="", keyfile="", cacert="",x509=False )
 
         self.patches = [
             patch('pika.ConnectionParameters')
@@ -31,16 +26,14 @@ class TestBorgPattern(unittest.TestCase):
             x.stop()
 
         del self.AMQPConnectionBorg
-        del self.ArgsClass
+        del self.Config
         del self.args
 
     def test_borgpattern_init_username(self):
         b1 = self.AMQPConnectionBorg(self.args)
 
     def test_borgpattern_init_x509(self):
-        self.args = self.ArgsClass(host="test", port=34, vhost="/", retry=1,
-                                   retrydelay=1,sockettimeout=0.25,username="test",password="test",
-                                   certfile="", keyfile="", cacert="",x509=True )
+        self.args = self.Config(x509=True)
         b1 = self.AMQPConnectionBorg(self.args)
 
     def test_borgpattern_two_objects_one_state(self):

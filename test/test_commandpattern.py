@@ -18,7 +18,7 @@ class TestRPCCommand(unittest.TestCase):
 class TestRPCInvoker(unittest.TestCase):
 
     def setUp(self):
-        from collections import namedtuple
+
         import amqppublisher.lib.rpc 
 
         self.Invoker = amqppublisher.lib.rpc.Invoker
