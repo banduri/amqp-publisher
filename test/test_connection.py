@@ -24,8 +24,6 @@ class TestConnection(unittest.TestCase):
         import amqppublisher.lib.connection
         self.AMQPConnectionBorg = amqppublisher.lib.connection.AMQPConnectionBorg
 
-
-
     def tearDown(self):
         for x in self.patches:
             x.stop()
