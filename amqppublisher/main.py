@@ -8,11 +8,11 @@ import sys
 from pprint import pprint,pformat
 
 
-from lib.tools import Timeout, TimeoutException
-from lib.connection import AMQPConnectionBorg
-from lib.messages import getMessageProperties
-from lib.config import parser
-from lib.rpc import processRPCresult
+from amqppublisher.lib.tools import Timeout, TimeoutException
+from amqppublisher.lib.connection import AMQPConnectionBorg
+from amqppublisher.lib.messages import getMessageProperties
+from amqppublisher.lib.config import parser
+from amqppublisher.lib.rpc import processRPCresult
 
 log = logging.getLogger(__name__)
 
@@ -93,7 +93,8 @@ def main(args):
 
     sys.exit(0)
 
-if __name__ == "__main__":
+
+def commandline():
     args = parser.parse_args(sys.argv)
 
     if args.mail:
@@ -124,3 +125,6 @@ if __name__ == "__main__":
 
     main(args)
     
+    
+if __name__ == "__main__":
+    commandline()
