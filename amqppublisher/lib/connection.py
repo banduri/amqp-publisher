@@ -30,7 +30,7 @@ class AMQPConnectionBorg:
                     retry_delay = self.config.retrydelay,
                     socket_timeout = self.config.sockettimeout,
                     credentials = ExternalCredentials(),
-                    ssl = True,
+                    ssl = not self.config.plain,
                     ssl_options = self.ssl_options)
             else:
                 self.parameters=ConnectionParameters(
@@ -42,7 +42,7 @@ class AMQPConnectionBorg:
                     socket_timeout = self.config.sockettimeout,
                     credentials = PlainCredentials(username=self.config.username,
                                                    password=self.config.password),
-                    ssl = True)
+                    ssl = not self.config.plain)
         self.initDone = True
 
     def is_connected(self):

@@ -61,6 +61,9 @@ conparser.add_argument('--sockettimeout', metavar='<seconds>', type = float,
                        help = 'TCP Socket timeout in seconds',
                        default = 0.25)
 
+conparser.add_argument('--plain', help = "don't use tls when connecting to the amqp-server",
+                       action = "store_true", default=False)
+
 #################
 # TLS-Options
 #################
