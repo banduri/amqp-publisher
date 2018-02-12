@@ -95,7 +95,7 @@ def main(args):
 
 
 def commandline():
-    args = parser.parse_args(sys.argv)
+    args = parser.parse_args(sys.argv[1:])
 
     if args.mail:
         sh = logging.handlers.SMTPHandler(mailhost = args.mail_host,

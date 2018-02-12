@@ -20,7 +20,8 @@ def getEncoding(args):
 
             # get the mimetype of the file 
             cmd = [args.fileprog,'-b','--mime',args.inputfile]
-            result = subprocess.check_output(cmd)
+            result = subprocess.check_output(cmd).decode()
+            
             mime_type = result.split(";")[0].strip()
             mime_encoding = result.split("=")[1].strip()
         except Exception as e:

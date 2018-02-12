@@ -30,7 +30,7 @@ class AMQPConnectionBorg:
                     retry_delay = self.config.retrydelay,
                     socket_timeout = self.config.sockettimeout,
                     credentials = ExternalCredentials(),
-                    ssl = not self.config.plain,
+                    ssl = True,
                     ssl_options = self.ssl_options)
             else:
                 self.parameters=ConnectionParameters(
